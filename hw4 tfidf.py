@@ -2,8 +2,8 @@ from math import log
 from collections import Counter, defaultdict
 from typing import Iterable
 
-import re
 import pymorphy2
+import re
 
 morph = pymorphy2.MorphAnalyzer()
 
@@ -54,7 +54,8 @@ def calc_tf(term: str, text: str):
 
 def calc_idfs(corpus: Iterable[str]) -> dict:
     all_words = [token for text in corpus for token in preprocess_text(text)]
-    return {term: log(len(corpus) / (1 + all_words.count(term))) for text in corpus for term in preprocess_text(text)}
+    return defaultdict(int, {term: log(len(corpus) / (1 + all_words.count(term)))
+                             for text in corpus for term in preprocess_text(text)})
 
 
 def calc_tfidf(term: str, text: str, precomputed_idfs: dict) -> float:
@@ -62,8 +63,8 @@ def calc_tfidf(term: str, text: str, precomputed_idfs: dict) -> float:
 
 
 idfs = calc_idfs(text_corpus)
-print(idfs)
 
-for text in text_corpus:
-    tfidfs = calc_tfidf('выжить', text, idfs)
-    print(tfidfs)
+print(calc_tfidf('не', text_corpus[12], idfs))
+
+print('here\'s its tfidf in one of the texts: ',
+      calc_tfidf(term=input('enter a word: '), text=text_corpus[5], precomputed_idfs=idfs))
