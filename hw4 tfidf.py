@@ -40,7 +40,7 @@ text_corpus = [
 
 
 def preprocess_text(text: str) -> list[str]:
-    text = re.split(r'[ .,!:;?\[\]\-\'"“)(<>*@`_]+', text.lower())
+    text = re.split(r'\W+', text.lower())
     clean_text = list(filter(None, text))
     return [morph.parse(word)[0].normal_form for word in clean_text]
 
