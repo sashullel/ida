@@ -38,33 +38,47 @@ text_corpus = [
     'Не ходить в церковь; Не верить в бога; Не пить водку; Не работать.',
 ]
 
-
 def preprocess_text(text: str) -> list[str]:
     text = re.split(r'\W+', text.lower())
     clean_text = list(filter(None, text))
+    # если сделать каст в set на данном этапе, то не получится подсчитать most_common_term_freq in calc_tf
     return [morph.parse(word)[0].normal_form for word in clean_text]
 
 
 def calc_tf(term: str, text: str):
     text = preprocess_text(text)
-    requested = text.count(morph.parse(term)[0].normal_form)
-    most_common = Counter(text).most_common(1)[0][1]
-    return 0.5 + 0.5 * (requested / most_common)
+    # если мы не будем tf считать отдельно, то здесь лемматизацию можно не делать, тк она есть в calc_tfidf
+    requested_term_freq = text.count(morph.parse(term)[0].normal_form)
+    most_common_term_freq = Counter(text).most_common(1)[0][1]  # сначала берем 1-ый эл-т списка, потом 2 эл-т кортежа
+    return 0.5 + 0.5 * (requested_term_freq / most_common_term_freq)
 
 
 def calc_idfs(corpus: Iterable[str]) -> dict:
-    all_words = [token for text in corpus for token in preprocess_text(text)]
-    return defaultdict(int, {term: log(len(corpus) / (1 + all_words.count(term)))
-                             for text in corpus for term in preprocess_text(text)})
+    processed_corpus = [preprocess_text(text) for text in corpus]
+    unique_terms = list(set([term for text in processed_corpus for term in text]))
+    idf_dict = defaultdict(int, )
+
+    for unique_term in unique_terms:
+        docs_with_term = [unique_term in text for text in processed_corpus].count(True)
+        idf = log(len(corpus) / (1 + docs_with_term))
+        idf_dict[unique_term] = idf
+
+    return idf_dict
 
 
 def calc_tfidf(term: str, text: str, precomputed_idfs: dict) -> float:
-    return precomputed_idfs[term] * calc_tf(term, text)
+    processed_term = morph.parse(term)[0].normal_form
+    return precomputed_idfs[processed_term] * calc_tf(processed_term, text)
 
 
 idfs = calc_idfs(text_corpus)
+print(idfs)
 
-print(calc_tfidf('не', text_corpus[12], idfs))
+print(calc_tfidf('не', text_corpus[12], idfs))  # 0.30010459245033816
+print(calc_tfidf('верблюд', text_corpus[-1], idfs))  # 1.3013448427221919
 
-print('here\'s its tfidf in one of the texts: ',
-      calc_tfidf(term=input('enter a word: '), text=text_corpus[5], precomputed_idfs=idfs))
+given_word = morph.parse(input('give some word: '))[0].normal_form
+given_idx = input('give the text idx: ')
+print('here\'s its tfidf in the given text: ', calc_tfidf(term=given_word,
+                                                          text=given_idx,
+                                                          precomputed_idfs=idfs))
