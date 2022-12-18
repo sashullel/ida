@@ -45,7 +45,8 @@ def func2(a: list[list[list]], b: list[int]):
 
 
 # print(func2(tuple([]), []))  # TypeError: incorrect argument a: expected type list, got type tuple
-print(func2([1], [2]))  # [1, 2]
+# print(func2([1], [2]))  # [1, 2]
+
 
 @check_types
 def func3(a: list, b: list[list[list[dict]]]) -> int:
