@@ -56,6 +56,13 @@ def func3(a: list, b: list[list[list[dict]]]) -> int:
     return 4
 
 
-# print(func3(['a'], ['3', 3]))  # TypeError: Incorrect return: expected type int, got type list
 # print(func3(b=[], a=tuple()))  # TypeError: Incorrect argument a: expected type list, got type tuple
 # print(func3([1, 2, 3], ['a' * 10]))  # 4
+
+@check_types
+def func4(a: list) -> int:
+    return a[0]
+
+
+# print(func4([[0], 1, 2, 3]))  # TypeError: Incorrect return: expected type int, got type list
+# print(func4([3, 9, 2, 'a']))  # 3
