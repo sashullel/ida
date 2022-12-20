@@ -1,9 +1,11 @@
+from functools import wraps
 from typing import get_origin
 import inspect
 
 
 def check_types(func: callable):
 
+    @wraps(func)
     def wrapped(*args, **kwargs):
         sig = inspect.signature(func)
         given_args = sig.bind(*args, **kwargs).arguments
@@ -18,14 +20,15 @@ def check_types(func: callable):
                 raise TypeError(f'Incorrect argument {arg}: expected type {expected_types[arg].__name__}, '
                                     f'got type {type(val).__name__}')
 
+        result = func(*args, **kwargs)
+
         if 'return' in expected_types:
-            result = func(*args, **kwargs)
             return_type = expected_types['return']
             if not isinstance(result, return_type):
                 raise TypeError(f'Incorrect return: expected type {return_type.__name__}, '
                                 f'got type {type(result).__name__}')
 
-        return func(*args, **kwargs)
+        return result
 
     return wrapped
 
@@ -36,7 +39,7 @@ def func1(a: int, b: str) -> str:
 
 
 # print(func1(2, 'hi hello '))  # hi hello hi hello
-# print(func1(2, 2))  # TypeError: Argument b: expected type str, got type int
+# print(func1(2, 2))  # TypeError: Incorrect argument b: expected type str, got type int
 
 
 @check_types
